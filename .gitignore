@@ -2,4 +2,5 @@
 *.mpf
 *.wlf
 *.cr.mti
-.work/
+work/
+.DS_Store

@@ -4,21 +4,38 @@
 `define WORD_SIZE 16	//	instead of 2^16 words to reduce memory
 			//	requirements in the Active-HDL simulator 
 
-module Memory(clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, data2);
+module Memory(clk, reset_n, readM1, address1, data1_1, data1_2, data1_3, data1_4, readM2, writeM2, address2, data2_1, data2_2, data2_3, data2_4);
 	input clk;
 	wire clk;
 	input reset_n;
 	wire reset_n;
 	
+// Instruction Memory 
+
 	input readM1;
 	wire readM1;
+
 	input [`WORD_SIZE-1:0] address1;
 	wire [`WORD_SIZE-1:0] address1;
-	output data1;
-	wire [`WORD_SIZE-1:0] data1;
 	
+	wire [`WORD_SIZE-1:0] address1_1;
+	wire [`WORD_SIZE-1:0] address1_2;
+	wire [`WORD_SIZE-1:0] address1_3;
+	wire [`WORD_SIZE-1:0] address1_4; 
+	output reg [`WORD_SIZE-1:0] data1_1;
+	output reg [`WORD_SIZE-1:0] data1_2;
+	output reg [`WORD_SIZE-1:0] data1_3;
+	output reg [`WORD_SIZE-1:0] data1_4;
+	reg [`WORD_SIZE-1:0] readInstruction_1;
+	reg [`WORD_SIZE-1:0] readInstruction_2;
+	reg [`WORD_SIZE-1:0] readInstruction_3;
+	reg [`WORD_SIZE-1:0] readInstruction_4;
 	
+	AddressCalculateModule InstructionACM(address1, address1_1, address1_2, address1_3, address1_4);
 	
+
+	// ----------------------------------
+	// Data Memory
 	
 	input readM2;
 	wire readM2;
@@ -26,15 +43,47 @@ module Memory(clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, 
 	wire writeM2;
 	input [`WORD_SIZE-1:0] address2;
 	wire [`WORD_SIZE-1:0] address2;
-	inout data2;
-	wire [`WORD_SIZE-1:0] data2;
+
+	wire [`WORD_SIZE-1:0] address2_1;
+	wire [`WORD_SIZE-1:0] address2_2;
+	wire [`WORD_SIZE-1:0] address2_3;
+	wire [`WORD_SIZE-1:0] address2_4; 
+	inout wire [`WORD_SIZE-1:0] data2_1;
+	inout wire [`WORD_SIZE-1:0] data2_2;
+	inout wire [`WORD_SIZE-1:0] data2_3;
+	inout wire [`WORD_SIZE-1:0] data2_4;
+	reg [`WORD_SIZE-1:0] readData_1;
+	reg [`WORD_SIZE-1:0] readData_2;
+	reg [`WORD_SIZE-1:0] readData_3;
+	reg [`WORD_SIZE-1:0] readData_4;
+	reg [`WORD_SIZE-1:0] writeData_1;
+	reg [`WORD_SIZE-1:0] writeData_2;
+	reg [`WORD_SIZE-1:0] writeData_3;
+	reg [`WORD_SIZE-1:0] writeData_4;
+
+	AddressCalculateModule DataACM(address2, address2_1, address2_2, address2_3, address2_4);
+
+	// ----------------------------------
+
+
 	
 	reg [`WORD_SIZE-1:0] memory [0:`MEMORY_SIZE-1];
 	reg [`WORD_SIZE-1:0] outputData2;
 	reg [`WORD_SIZE-1:0] outputData1;
 
-	assign data1 = readM1?outputData1:`WORD_SIZE'bz;
-	assign data2 = readM2?outputData2:`WORD_SIZE'bz;
+
+	reg [`WORD_SIZE-1:0] outputData2_1;
+	reg [`WORD_SIZE-1:0] outputData2_2;
+	reg [`WORD_SIZE-1:0] outputData2_3;
+	reg [`WORD_SIZE-1:0] outputData2_4;
+
+
+
+  assign data2_1 = readM2?outputData2_1:`WORD_SIZE'bz;
+	assign data2_2 = readM2?outputData2_2:`WORD_SIZE'bz;
+	assign data2_3 = readM2?outputData2_3:`WORD_SIZE'bz;
+	assign data2_4 = readM2?outputData2_4:`WORD_SIZE'bz;
+
 	
 	always@(posedge clk)
 		if(!reset_n)
@@ -241,8 +290,50 @@ module Memory(clk, reset_n, readM1, address1, data1, readM2, writeM2, address2, 
 			end
 		else
 			begin
-				if(readM1) outputData1 <= (writeM2 & address1==address2)?data2:memory[address1];
-				if(readM2)outputData2 <= memory[address2];
-				if(writeM2)memory[address2] <= data2;															  
+				data1_1 <=  readInstruction_1;
+				data1_2 <=  readInstruction_2;
+				data1_3 <=  readInstruction_3;
+				data1_4 <=  readInstruction_4;
+				if(readM1)  begin
+					readInstruction_1 <= (writeM2 & address1_1==address2_1)?data2_1:memory[address1_1];
+					readInstruction_2 <= (writeM2 & address1_2==address2_2)?data2_2:memory[address1_2];
+					readInstruction_3 <= (writeM2 & address1_3==address2_3)?data2_3:memory[address1_3];
+					readInstruction_4 <= (writeM2 & address1_4==address2_4)?data2_4:memory[address1_4];
+				end
+				if(readM2)  begin
+					readData_1 <= memory[address2_1];
+					readData_2 <= memory[address2_2];
+					readData_3 <= memory[address2_3];
+					readData_4 <= memory[address2_4];
+					outputData2_1 <= readData_1;
+					outputData2_2 <= readData_2;
+					outputData2_3 <= readData_3;
+					outputData2_4 <= readData_4;
+				end
+				if(writeM2) begin
+					writeData_1 <= data2_1;
+					writeData_2 <= data2_2;
+					writeData_3 <= data2_3;
+					writeData_4 <= data2_4;
+					memory[address2_1] <= writeData_1;
+					memory[address2_2] <= writeData_2;
+					memory[address2_3] <= writeData_3;
+					memory[address2_4] <= writeData_4;
+				end
 			end
+endmodule
+
+module AddressCalculateModule(address, address1, address2, address3, address4);
+  input [`WORD_SIZE-1:0] address;
+  output reg [`WORD_SIZE-1:0] address1;
+	output reg [`WORD_SIZE-1:0] address2;
+	output reg [`WORD_SIZE-1:0] address3;
+	output reg [`WORD_SIZE-1:0] address4;
+
+  always @(*) begin
+		address1 <= { address[`WORD_SIZE-1:2] , 2'b00 };
+		address2 <= { address[`WORD_SIZE-1:2] , 2'b01 };
+		address3 <= { address[`WORD_SIZE-1:2] , 2'b10 };
+		address4 <= { address[`WORD_SIZE-1:2] , 2'b11 };
+  end
 endmodule

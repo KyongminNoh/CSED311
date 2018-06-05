@@ -5,7 +5,7 @@
 `define NUM_TEST 56
 `define TESTID_SIZE 5
 
-module cpu_TB();
+module nc_cpu_TB();
 	reg reset_n;    // active-low RESET signal
 	reg clk;        // clock signal	
 	
@@ -29,7 +29,7 @@ module cpu_TB();
 	wire is_halted;				// set if the cpu is halted
 
 	// instantiate the unit under test
-	cpu UUT (clk, reset_n, readM1, address1, data1_1, data1_2, data1_3, data1_4, readM2, writeM2, address2, data2_1, data2_2, data2_3, data2_4, num_inst, output_port, is_halted);
+	nccpu UUT (clk, reset_n, readM1, address1, data1_1, data1_2, data1_3, data1_4, readM2, writeM2, address2, data2_1, data2_2, data2_3, data2_4, num_inst, output_port, is_halted);
 	Memory NUUT(!clk, reset_n, readM1, address1, data1_1, data1_2, data1_3, data1_4, readM2, writeM2, address2, data2_1, data2_2, data2_3, data2_4);
 
 	// initialize inputs
