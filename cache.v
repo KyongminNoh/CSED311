@@ -5,7 +5,7 @@
 `define TAG_SIZE 12
 `define NUM_SET 4
 
-module Cache(clk, reset_n, mem_read_req, mem_write_req, mem_addr, mem_data, cache_read_req, cache_write_req, is_cache_processing, req_addr, req_data);
+module Cache(clk, reset_n, mem_read_req, mem_write_req, mem_addr, mem_data_1, mem_data_2, mem_data_3, mem_data_4, resultData, cache_read_req, cache_write_req, is_cache_processing, req_addr, req_data);
 
 //*******	PARAMETER	*******//
 	input clk;
@@ -23,13 +23,18 @@ module Cache(clk, reset_n, mem_read_req, mem_write_req, mem_addr, mem_data, cach
 	
 	input [`WORD_SIZE-1:0] req_addr;
 
-	inout mem_data;
-	wire [`WORD_SIZE-1:0] mem_data;
+	inout wire [`WORD_SIZE-1:0] mem_data_1;
+	inout wire [`WORD_SIZE-1:0] mem_data_2;
+	inout wire [`WORD_SIZE-1:0] mem_data_3;
+	inout wire [`WORD_SIZE-1:0] mem_data_4;
+
+	output wire [`WORD_SIZE-1:0] resultData; 
+
 
 	inout [`WORD_SIZE-1:0] mem_addr;
 	wire [`WORD_SIZE-1:0] mem_addr;
 
-    input [`WORD_SIZE-1:0] req_data;	
+  input [`WORD_SIZE-1:0] req_data;	
 
 	output is_cache_processing;
 	reg is_cache_processing;
@@ -81,7 +86,12 @@ module Cache(clk, reset_n, mem_read_req, mem_write_req, mem_addr, mem_data, cach
 //*******	LOCAL VARIABLE	*******//
 	
 //*******	ASSIGNMENT	*******//
-	assign mem_data = (!mem_read_req)?((mem_write_req)?writeData:outputData1):`WORD_SIZE'bz;
+	assign resultData = outputData1;
+	// assign mem_data_1 = (!mem_read_req)?((mem_write_req)?writeData:outputData1):`WORD_SIZE'bz;
+	// assign mem_data_2 = (!mem_read_req)?((mem_write_req)?writeData:outputData1):`WORD_SIZE'bz;
+	// assign mem_data_3 = (!mem_read_req)?((mem_write_req)?writeData:outputData1):`WORD_SIZE'bz;
+	// assign mem_data_4 = (!mem_read_req)?((mem_write_req)?writeData:outputData1):`WORD_SIZE'bz;
+
 	assign mem_addr = (is_cache_processing)?outputAddr1:((mem_write_req)?req_addr:`WORD_SIZE'bz);
 	assign line_idx = 2*req_addr[3:2];
 	assign block_idx = req_addr[1:0];
@@ -536,22 +546,18 @@ module Cache(clk, reset_n, mem_read_req, mem_write_req, mem_addr, mem_data, cach
 	end
 	FETCH0 : begin
 		mem_read_req<=1;
-		outputAddr1 <= {outputAddr1[15:2],2'b00};
 	end
 	FETCH1 : begin
-		block1[line_idx+way] <= mem_data;
-		outputAddr1 <= {outputAddr1[15:2],2'b01};
 	end
 	FETCH2 : begin
-		block2[line_idx+way] <= mem_data;
-		outputAddr1 <= {outputAddr1[15:2],2'b10};
 	end
 	FETCH3 : begin
-		block3[line_idx+way] <= mem_data;
-		outputAddr1 <= {outputAddr1[15:2],2'b11};
 	end
 	FETCH4 : begin
-		block4[line_idx+way] <= mem_data;
+		block1[line_idx+way] <= mem_data_1;
+		block2[line_idx+way] <= mem_data_2;
+		block3[line_idx+way] <= mem_data_3;
+		block4[line_idx+way] <= mem_data_4;
 		mem_read_req<=0;
 		if(is_write) begin
 			mem_write_req <=1;

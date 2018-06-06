@@ -1,7 +1,7 @@
 `timescale 1ns/1ns
 `include "opcodes.v"   
 
-module cpu(Clk, Reset_N, readM1, address1, data1_1, data1_2, data1_3, data1_4, readM2, writeM2, address2, data2_1, data2_2, data2_3, data2_4, num_inst, output_port, is_halted);
+module cpu(Clk, Reset_N, readM1, address1, data1_1, data1_2, data1_3, data1_4, readM2, writeM2, address2, data2_1, data2_2, data2_3, data2_4, num_inst, output_port, is_halted, CacheInst, CacheData);
 	input wire Clk;
 	input wire Reset_N;
 
@@ -26,6 +26,9 @@ module cpu(Clk, Reset_N, readM1, address1, data1_1, data1_2, data1_3, data1_4, r
 
 
 	// TODO : Implement your pipelined CPU!
+
+  input wire [`WORD_SIZE-1:0] CacheInst;
+  input wire [`WORD_SIZE-1:0] CacheData;
 
 
   wire num_inst_plus;
@@ -159,15 +162,13 @@ module cpu(Clk, Reset_N, readM1, address1, data1_1, data1_2, data1_3, data1_4, r
   reg cache_writeM2;
 
   assign IFPCWrite = (PCWrite === 1'b1||is_cache_processing ===1'b1 || is_cache_processing2 ===1'b1)?1:0;
-  Cache inst_cache(~Clk, Reset_N, readM1, writeM1, address1, data1_1, cache_readM1
-, 1'b0, is_cache_processing, pc_addr, 16'd0);
-  Cache data_cache(~Clk, Reset_N, readM2, writeM2, address2, data2_1, cache_readM2
-, cache_writeM2, is_cache_processing2, data_addr, req_data);
+  Cache inst_cache(~Clk, Reset_N, readM1, writeM1, address1, data1_1, data1_2, data1_3, data1_4, CacheInst, cache_readM1, 1'b0, is_cache_processing, pc_addr, 16'd0);
+  Cache data_cache(~Clk, Reset_N, readM2, writeM2, address2, data2_1, data2_2, data2_3, data2_4, CacheData, cache_readM2, cache_writeM2, is_cache_processing2, data_addr, req_data);
 
 	assign PCIn = NextPC;
   ProgramCounter PC(Clk, Reset_N, PCIn, IFPCWrite, PCOut); 
   assign pc_addr = PCOut;
-  assign IF_Instruction = (is_cache_processing === 1'b1||is_cache_processing2 === 1'b1)?`WORD_SIZE'bz:data1_1;
+  assign IF_Instruction = (is_cache_processing === 1'b1||is_cache_processing2 === 1'b1)?`WORD_SIZE'bz:CacheInst;
   Adder PCAdder(pc_addr, 1, IF_PCPlus1);  
 	assign JMP = (IF_Instruction[15:12] === 4'd9) ? 1'b1 : 1'b0;
   assign JAL = (IF_Instruction[15:12] === 4'd10) ? 1'b1 : 1'b0;
@@ -239,7 +240,7 @@ module cpu(Clk, Reset_N, readM1, address1, data1_1, data1_2, data1_3, data1_4, r
   assign MEMForwardingData = MEM_ALUOut;
   assign MEMWBWrite = (is_cache_processing === 1'b1 || is_cache_processing2 === 1'b1)?1'b1:1'b0;
   
-  MEMWBRegister MEMWB_Reg(Clk, MEMWBWrite, MEM_ControlSignal, MEM_ALUOut, data2_1, MEM_RD, WB_RegWrite, WB_MemToReg, WB_ALUOut, WB_MemoryOut, WB_WR, num_inst_plus, WB_WWD, WB_HLT);
+  MEMWBRegister MEMWB_Reg(Clk, MEMWBWrite, MEM_ControlSignal, MEM_ALUOut, CacheData, MEM_RD, WB_RegWrite, WB_MemToReg, WB_ALUOut, WB_MemoryOut, WB_WR, num_inst_plus, WB_WWD, WB_HLT);
 
 
   TwoInputMux WBMux(WB_ALUOut, WB_MemoryOut, WB_MemToReg, WB_WD);
