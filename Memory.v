@@ -26,10 +26,7 @@ module Memory(clk, reset_n, readM1, address1, data1_1, data1_2, data1_3, data1_4
 	output reg [`WORD_SIZE-1:0] data1_2;
 	output reg [`WORD_SIZE-1:0] data1_3;
 	output reg [`WORD_SIZE-1:0] data1_4;
-	reg [`WORD_SIZE-1:0] readInstruction_1;
-	reg [`WORD_SIZE-1:0] readInstruction_2;
-	reg [`WORD_SIZE-1:0] readInstruction_3;
-	reg [`WORD_SIZE-1:0] readInstruction_4;
+
 	
 	AddressCalculateModule InstructionACM(address1, address1_1, address1_2, address1_3, address1_4);
 	
@@ -52,14 +49,7 @@ module Memory(clk, reset_n, readM1, address1, data1_1, data1_2, data1_3, data1_4
 	inout wire [`WORD_SIZE-1:0] data2_2;
 	inout wire [`WORD_SIZE-1:0] data2_3;
 	inout wire [`WORD_SIZE-1:0] data2_4;
-	reg [`WORD_SIZE-1:0] readData_1;
-	reg [`WORD_SIZE-1:0] readData_2;
-	reg [`WORD_SIZE-1:0] readData_3;
-	reg [`WORD_SIZE-1:0] readData_4;
-	reg [`WORD_SIZE-1:0] writeData_1;
-	reg [`WORD_SIZE-1:0] writeData_2;
-	reg [`WORD_SIZE-1:0] writeData_3;
-	reg [`WORD_SIZE-1:0] writeData_4;
+
 
 	AddressCalculateModule DataACM(address2, address2_1, address2_2, address2_3, address2_4);
 
@@ -288,37 +278,25 @@ module Memory(clk, reset_n, readM1, address1, data1_1, data1_2, data1_3, data1_4
 				memory[16'hc5] <= 16'hf819;
 				memory[16'hc6] <= 16'hf01d;
 			end
-		else
+		else	
 			begin
-				data1_1 <=  readInstruction_1;
-				data1_2 <=  readInstruction_2;
-				data1_3 <=  readInstruction_3;
-				data1_4 <=  readInstruction_4;
 				if(readM1)  begin
-					readInstruction_1 <= (writeM2 & address1_1==address2_1)?data2_1:memory[address1_1];
-					readInstruction_2 <= (writeM2 & address1_2==address2_2)?data2_2:memory[address1_2];
-					readInstruction_3 <= (writeM2 & address1_3==address2_3)?data2_3:memory[address1_3];
-					readInstruction_4 <= (writeM2 & address1_4==address2_4)?data2_4:memory[address1_4];
+					data1_1 <= (writeM2 & address1_1==address2_1)?data2_1:memory[address1_1];
+					data1_2 <= (writeM2 & address1_2==address2_2)?data2_2:memory[address1_2];
+					data1_3 <= (writeM2 & address1_3==address2_3)?data2_3:memory[address1_3];
+					data1_4 <= (writeM2 & address1_4==address2_4)?data2_4:memory[address1_4];
 				end
 				if(readM2)  begin
-					readData_1 <= memory[address2_1];
-					readData_2 <= memory[address2_2];
-					readData_3 <= memory[address2_3];
-					readData_4 <= memory[address2_4];
-					outputData2_1 <= readData_1;
-					outputData2_2 <= readData_2;
-					outputData2_3 <= readData_3;
-					outputData2_4 <= readData_4;
+					outputData2_1 <= memory[address2_1];
+					outputData2_2 <= memory[address2_2];
+					outputData2_3 <= memory[address2_3];
+					outputData2_4 <= memory[address2_4];
 				end
 				if(writeM2) begin
-					writeData_1 <= data2_1;
-					writeData_2 <= data2_2;
-					writeData_3 <= data2_3;
-					writeData_4 <= data2_4;
-					memory[address2_1] <= writeData_1;
-					memory[address2_2] <= writeData_2;
-					memory[address2_3] <= writeData_3;
-					memory[address2_4] <= writeData_4;
+					memory[address2_1] <= data2_1;
+					memory[address2_2] <= data2_2;
+					memory[address2_3] <= data2_3;
+					memory[address2_4] <= data2_4;
 				end
 			end
 endmodule
