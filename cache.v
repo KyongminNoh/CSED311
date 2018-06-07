@@ -87,10 +87,10 @@ module Cache(clk, reset_n, mem_read_req, mem_write_req, mem_addr, mem_data_1, me
 	
 //*******	ASSIGNMENT	*******//
 	assign resultData = outputData1;
-	// assign mem_data_1 = (!mem_read_req)?((mem_write_req)?writeData:outputData1):`WORD_SIZE'bz;
-	// assign mem_data_2 = (!mem_read_req)?((mem_write_req)?writeData:outputData1):`WORD_SIZE'bz;
-	// assign mem_data_3 = (!mem_read_req)?((mem_write_req)?writeData:outputData1):`WORD_SIZE'bz;
-	// assign mem_data_4 = (!mem_read_req)?((mem_write_req)?writeData:outputData1):`WORD_SIZE'bz;
+	assign mem_data_1 = (!mem_read_req)?((mem_write_req)?block1[line_idx+way]:outputData1):`WORD_SIZE'bz;
+	assign mem_data_2 = (!mem_read_req)?((mem_write_req)?block2[line_idx+way]:outputData1):`WORD_SIZE'bz;
+	assign mem_data_3 = (!mem_read_req)?((mem_write_req)?block3[line_idx+way]:outputData1):`WORD_SIZE'bz;
+	assign mem_data_4 = (!mem_read_req)?((mem_write_req)?block4[line_idx+way]:outputData1):`WORD_SIZE'bz;
 
 	assign mem_addr = (is_cache_processing)?outputAddr1:((mem_write_req)?req_addr:`WORD_SIZE'bz);
 	assign line_idx = 2*req_addr[3:2];
@@ -174,11 +174,11 @@ module Cache(clk, reset_n, mem_read_req, mem_write_req, mem_addr, mem_data_1, me
 			is_write <= 1;
 			writeData <= req_data;
 			if(addr_tag==tag[line_idx]&&valid[line_idx]) begin
-				mem_write_req <=1;
+				mem_write_req <=0;
 				next_state = HIT1;
 			end
 			else if(addr_tag==tag[line_idx+1]&&valid[line_idx+1]) begin
-				mem_write_req <=1;
+				mem_write_req <=0;
 				next_state = HIT2;
 			end
 			else if(!valid[line_idx]) begin // miss
@@ -236,11 +236,11 @@ module Cache(clk, reset_n, mem_read_req, mem_write_req, mem_addr, mem_data_1, me
 			is_write <=1;
 			writeData <= req_data;
 			if(addr_tag==tag[line_idx]&&valid[line_idx]) begin
-				mem_write_req <=1;
+				mem_write_req <=0;
 				next_state = HIT1;
 			end
 			else if(addr_tag==tag[line_idx+1]&&valid[line_idx+1]) begin
-				mem_write_req <=1;
+				mem_write_req <=0;
 				next_state = HIT2;
 			end
 			else if(!valid[line_idx]) begin // miss
@@ -300,11 +300,11 @@ module Cache(clk, reset_n, mem_read_req, mem_write_req, mem_addr, mem_data_1, me
 			is_write<=1;
 			writeData<=req_data;
 			if(addr_tag==tag[line_idx]&&valid[line_idx]) begin
-				mem_write_req <=1;
+				mem_write_req <=0;
 				next_state = HIT1;
 			end
 			else if(addr_tag==tag[line_idx+1]&&valid[line_idx+1]) begin
-				mem_write_req <=1;
+				mem_write_req <=0;
 				next_state = HIT2;
 			end
 			else if(!valid[line_idx]) begin // miss
